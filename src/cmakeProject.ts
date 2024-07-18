@@ -2821,11 +2821,18 @@ export class CMakeProject {
         }
 
         const userConfig = this.workspaceContext.config.debugConfig;
-        const terminal: vscode.Terminal = await this.createTerminal(executable);
+        const launchBehavior = this.workspaceContext.config.launchBehavior.toLowerCase();
+        let terminal: vscode.Terminal;
+
+        if (launchBehavior !== "newterminal" && vscode.window.activeTerminal) {
+            terminal = vscode.window.activeTerminal;
+        } else {
+            terminal = vscode.window.createTerminal();
+        }
 
         let executablePath = shlex.quote(executable.path);
         if (executablePath.startsWith("\"")) {
-            let launchTerminalPath = (terminal.creationOptions as vscode.TerminalOptions).env![this.launchTerminalPath];
+            let launchTerminalPath = vscode.env.shell;
             if (process.platform === 'win32') {
                 executablePath = executablePath.replace(/\\/g, "/");
                 launchTerminalPath = launchTerminalPath?.toLocaleLowerCase();
